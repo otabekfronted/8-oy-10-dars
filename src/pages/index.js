@@ -1,6 +1,6 @@
 "use strict";
+import React, { useEffect } from "react";
 import Head from "next/head";
-import { useEffect } from "react";
 import { MdOutlineAccountCircle } from "react-icons/md";
 import { AiOutlineInstagram } from "react-icons/ai";
 import { BsTwitter } from "react-icons/bs";
@@ -9,210 +9,234 @@ import Content from "@/components/Content";
 
 export default function Home() {
     useEffect(() => {
-        const items = document.querySelectorAll(".item");
+        console.log("Timeline script started");
+
+        const items = document.querySelectorAll(".item a");
         const mark = document.getElementById("marks");
+        const sections = document.querySelectorAll("section[id]");
 
-        const indicator = (e) => {
-            // Get target section
-            const target = document.querySelector(e.getAttribute("href"));
-            if (target) {
-                mark.style.top = e.offsetTop + "px";
-                mark.style.height = e.offsetHeight + "px";
+        console.log("Items found:", items.length);
+        console.log("Marker element:", mark);
+        console.log("Sections found:", sections.length);
 
-                // Scroll to the target section with an offset for visibility
-                window.scrollTo({
-                    top: target.offsetTop - 100, // Adjust scroll position with an offset
-                    behavior: "smooth",
-                });
+        const updateMarker = (targetId) => {
+            const currentItem = document.querySelector(
+                `.item a[href="#${targetId}"]`
+            )?.parentElement;
+
+            if (!currentItem) {
+                console.warn("Target ID not found in timeline:", targetId);
+                return;
+            }
+            if (mark) {
+                mark.style.top = `${currentItem.offsetTop}px`;
+                mark.style.height = `${currentItem.offsetHeight}px`;
+            } else {
+                console.warn("Marker element not found!");
             }
         };
 
-        const updateMarkPosition = () => {
-            const sections = document.querySelectorAll("section");
-            let found = false;
+        const handleScroll = () => {
+            sections.forEach((section) => {
+                const sectionTop = section.offsetTop - 0;
+                const sectionBottom = sectionTop + section.offsetHeight;
 
-            sections.forEach((section, index) => {
-                const sectionTop = section.offsetTop;
-                const sectionBottom = section.offsetTop + section.offsetHeight;
-
-                // Check if the section is in the viewport
                 if (
-                    window.scrollY + 100 >= sectionTop &&
+                    window.scrollY >= sectionTop &&
                     window.scrollY < sectionBottom
                 ) {
-                    const currentItem = items[index]; // Update mark based on the current section
-                    mark.style.top = currentItem.offsetTop + "px";
-                    mark.style.height = currentItem.offsetHeight + "px";
-                    found = true;
+                    console.log("Section in view:", section.id);
+                    updateMarker(section.id);
                 }
             });
+        };
 
-            if (!found) {
-                mark.style.top = items[0].offsetTop + "px"; // Default to first item if nothing is found
-                mark.style.height = items[0].offsetHeight + "px";
+        const handleClick = (e) => {
+            e.preventDefault();
+            const targetId = e.target.getAttribute("href")?.replace("#", "");
+            if (!targetId) {
+                console.warn("No target ID found in href!");
+                return;
+            }
+            const targetSection = document.getElementById(targetId);
+
+            if (targetSection) {
+                window.scrollTo({
+                    top: targetSection.offsetTop + 500,
+                    behavior: "smooth",
+                });
+                updateMarker(targetId);
+            } else {
+                console.warn("Target section not found:", targetId);
             }
         };
 
-        items.forEach((link) => {
-            link.addEventListener("click", (e) => {
-                e.preventDefault(); // Prevent default anchor behavior
-                indicator(e.target);
-            });
-        });
+        items.forEach((link) => link.addEventListener("click", handleClick));
+        window.addEventListener("scroll", handleScroll);
 
-        window.addEventListener("scroll", updateMarkPosition);
-
-        // Set initial mark position when the page loads
-        updateMarkPosition();
+        handleScroll();
 
         return () => {
-            window.removeEventListener("scroll", updateMarkPosition); // Cleanup scroll listener on unmount
+            items.forEach((link) =>
+                link.removeEventListener("click", handleClick)
+            );
+            window.removeEventListener("scroll", handleScroll);
         };
     }, []);
 
     return (
         <>
-            <Head>
-                <title>Create Next App</title>
-                <meta
-                    name="description"
-                    content="Generated by create next app"
-                />
-                <meta
-                    name="viewport"
-                    content="width=device-width, initial-scale=1"
-                />
-                <link rel="icon" href="/favicon.ico" />
-            </Head>
-            <main className="bg-[#354147] font-['Playfair_Display'] ">
-                <div className="relative">
-                    <header className="w-full h-auto relative">
-                        <img
-                            src="/images/hg.png"
-                            alt=""
-                            className="absolute w-full bottom-0 h-auto object-cover object-bottom"
+            <div className="bg-[#354147] ">
+                <div className="">
+                    <Head>
+                        <meta
+                            name="description"
+                            content="Interactive scrolling timeline with sections"
                         />
-                        <img
-                            src="/images/mg.png"
-                            alt=""
-                            className="relative w-full h-auto object-cover object-top"
+                        <meta
+                            name="viewport"
+                            content="width=device-width, initial-scale=1"
                         />
-                        <img
-                            src="/images/vg.png"
-                            alt=""
-                            className="absolute w-full bottom-0 h-auto object-cover object-top"
-                        />
-                    </header>
-                    <div className="relative bg-gradient-to-t from-[#354147] via-[#354147]/40 to-[#354147]/10 w-full h-[300px] mt-[-300px] z-[900] "></div>
-                    <span className="bg-radial"></span>
-                    <section className="w-full absolute top-0 z-[999]">
-                        <header className="max-w-7xl mx-auto grid grid-cols-12 gap-20 text-white">
-                            <nav className="mt-[4rem] flex w-full justify-between items-end col-span-full">
-                                <h1 className="text-3xl">MNTN</h1>
-                                <ul className="font-['Prompt'] flex max-h-fit gap-[40px]">
-                                    <li>Equipment</li>
-                                    <li>About us</li>
-                                    <li>Blog</li>
-                                </ul>
-                                <span className="font-['Prompt'] flex justify-center items-center gap-2">
-                                    <MdOutlineAccountCircle />
-                                    Account
-                                </span>
-                            </nav>
-
-                            <div className="col-span-full mt-16 flex justify-between items-center">
-                                <div className="flex-[1] text-start flex items-start justify-center gap-4 leading-4 text-lg flex-col">
-                                    <h3 className="font-['Prompt'] write-vertical">
-                                        Follow us
-                                    </h3>
-                                    <AiOutlineInstagram className="font-medium" />
-                                    <BsTwitter className="font-medium" />
-                                </div>
-                                <div className="flex-[3] h-full">
-                                    <p className="font-semibold flex items-center gap-4">
-                                        <span className="inline-block w-[100px] h-1 bg-[#FBD784]"></span>
-                                        <span className="uppercase tracking-widest font-['Prompt'] text-[#FBD784]">
-                                            A Hiking guide
+                        <link rel="icon" href="/favicon.ico" />
+                    </Head>
+                    <main className=" font-['Playfair_Display']">
+                        <div className="relative">
+                            <header className="w-full h-auto relative">
+                                <img
+                                    src="/images/hg.png"
+                                    alt="Header Image"
+                                    className="absolute w-full bottom-0 h-auto object-cover object-bottom"
+                                />
+                                <img
+                                    src="/images/mg.png"
+                                    alt="Middle Image"
+                                    className="relative w-full h-auto object-cover object-top"
+                                />
+                                <img
+                                    src="/images/vg.png"
+                                    alt="Vertical Image"
+                                    className="absolute w-full bottom-0 h-auto object-cover object-top"
+                                />
+                            </header>
+                            <div className="relative bg-gradient-to-t from-[#354147] via-[#354147]/40 to-[#354147]/10 w-full h-[300px] mt-[-300px] z-[900] "></div>
+                            <span className="bg-radial"></span>
+                            <section className="w-full absolute top-0 z-[999]">
+                                <header className="max-w-7xl mx-auto grid grid-cols-12 gap-20 text-white">
+                                    <nav className="mt-[1rem] flex w-full justify-between items-end col-span-full">
+                                        <h1 className="text-3xl">MNTN</h1>
+                                        <ul className="font-['Prompt'] flex max-h-fit gap-[40px]">
+                                            <li>Equipment</li>
+                                            <li>About us</li>
+                                            <li>Blog</li>
+                                        </ul>
+                                        <span className="font-['Prompt'] flex justify-center items-center gap-2">
+                                            <MdOutlineAccountCircle />
+                                            Account
                                         </span>
-                                    </p>
-                                    <h1 className="text-[4.375rem] font-medium">
-                                        Be prepared for the Mountains and
-                                        beyond!
-                                    </h1>
-                                    <p className="font-['Prompt'] flex items-center text-lg gap-2 mt-6">
-                                        Scroll down
-                                        <HiArrowNarrowDown className="font-bold text-2xl" />
-                                    </p>
-                                </div>
+                                    </nav>
+                                    <div className="col-span-full mt-16 flex justify-between items-center">
+                                        <div className="flex-[1] text-start flex items-start justify-center gap-4 leading-4 text-lg flex-col">
+                                            <h3 className="font-['Prompt'] write-vertical">
+                                                Follow us
+                                            </h3>
+                                            <AiOutlineInstagram className="font-medium" />
+                                            <BsTwitter className="font-medium" />
+                                        </div>
+                                        <div className="flex-[3] h-full">
+                                            <p className="font-semibold flex items-center gap-4">
+                                                <span className="inline-block w-[100px] h-1 bg-[#FBD784]"></span>
+                                                <span className="uppercase tracking-widest font-['Prompt'] text-[#FBD784]">
+                                                    A Hiking guide
+                                                </span>
+                                            </p>
+                                            <h1 className="text-[4.375rem] font-medium">
+                                                Be prepared for the Mountains
+                                                and beyond!
+                                            </h1>
+                                            <p className="font-['Prompt'] flex items-center text-lg gap-2 mt-6">
+                                                Scroll down
+                                                <HiArrowNarrowDown className="font-bold text-2xl" />
+                                            </p>
+                                        </div>
+                                    </div>
+                                </header>
+                            </section>
+                            <div
+                                id="main-content"
+                                className="relative -top-36 z-[1000]"
+                            >
+                                <section id="01">
+                                    <Content
+                                        image={"/images/01.png"}
+                                        heading={"What level of hiker are you?"}
+                                        text={"GET STARTED"}
+                                        desc={
+                                            "Determining what level of hiker you are can be an important tool when planning future hikes."
+                                        }
+                                        number={"01"}
+                                        id={"01"}
+                                    />
+                                </section>
+
+                                <section id="02">
+                                    <Content
+                                        image={"/images/pm.png"}
+                                        heading={
+                                            "Picking the right Hiking Gear!"
+                                        }
+                                        text={"Hiking Essentials"}
+                                        desc={
+                                            "The nice thing about beginning hiking is that you don’t really need any special gear."
+                                        }
+                                        number={"02"}
+                                        id={"02"}
+                                        className="flex-row-reverse my-36"
+                                    />
+                                </section>
+                                <section id="03">
+                                    <Content
+                                        image={"/images/clock.png"}
+                                        heading={"Understand Your Map & Timing"}
+                                        text={"Where you go is the key"}
+                                        desc={
+                                            "To start, print out the hiking guide and map."
+                                        }
+                                        number={"03"}
+                                        id={"03"}
+                                    />
+                                </section>
                             </div>
-                        </header>
-                    </section>
-                    <section
-                        id="main-content"
-                        className="relative -top-36 z-[1000] "
-                    >
-                        <Content
-                            image={"/images/01.png"}
-                            heading={"What level of hiker are you?"}
-                            text={"GET STARTED"}
-                            desc={
-                                "Determining what level of hiker you are can be an important tool when planning future hikes. This hiking level guide will help you plan hikes according to different hike ratings set by various websites like All Trails and Modern Hiker. What type of hiker are you – novice, moderate, advanced moderate, expert, or expert backpacker?"
-                            }
-                            number={"01"}
-                            id={"01"}
-                        />
-                        <Content
-                            image={"/images/pm.png"}
-                            heading={"Picking the right Hiking Gear!"}
-                            text={"Hiking Essentials"}
-                            desc={
-                                "The nice thing about beginning hiking is that you don’t really need any special gear, you can probably get away with things you already have. Let’s start with clothing. A typical mistake hiking beginners make is wearing jeans and regular clothes, which will get heavy and chafe if they get sweaty or wet."
-                            }
-                            number={"02"}
-                            id={"02"}
-                            className="flex-row-reverse mt-36"
-                        />
-                        <Content
-                            image={"/images/clock.png"}
-                            heading={"Understand Your Map & Timing"}
-                            text={"Where you go is the key"}
-                            desc={
-                                "To start, print out the hiking guide and map. If it’s raining, throw them in a Zip-Lock bag. Read over the guide, study the map, and have a good idea of what to expect. I like to know what my next landmark is as I hike. For example, I’m headed to point ‘A’ for the day’s hike, and at the same time, I also have to keep track of the trail markers so I don’t get lost. Know your estimated time for the day."
-                            }
-                            number={"03"}
-                            id={"03"}
-                        />
-                    </section>
+                        </div>
+                    </main>
+                    <div className="timeline text-white fixed top-0 right-6 text-end font-['Prompt'] flex gap-6 justify-end z-[9999999999]">
+                        <ul className="flex flex-col">
+                            <li className="h-[50px] flex justify-end items-center cursor-pointer item">
+                                <a href="#main-content" className="h-full">
+                                    Start
+                                </a>
+                            </li>
+                            <li className="h-[50px] flex justify-end items-center cursor-pointer item">
+                                <a href="#01" id="01" className="h-full">
+                                    01
+                                </a>
+                            </li>
+                            <li className="h-[50px] flex justify-end items-center cursor-pointer item">
+                                <a href="#02" id="02" className="h-full">
+                                    02
+                                </a>
+                            </li>
+                            <li className="h-[50px] flex justify-end items-center cursor-pointer item">
+                                <a href="#03" id="03" className="h-full">
+                                    03
+                                </a>
+                            </li>
+                        </ul>
+                        <div
+                            id="marks"
+                            className="w-[2px] bg-[#FBD784] absolute top-0 left-0"
+                        ></div>
+                    </div>
                 </div>
-            </main>
-            {/* Timeline */}
-            <div className="timeline fixed top-0 right-6 flex-[10] text-end font-['Prompt'] flex gap-6 justify-end z-[9999999999]">
-                <ul className="flex flex-col">
-                    <li className="h-[50px] flex justify-end items-center cursor-pointer item">
-                        <a href="#" className="h-full">
-                            Start
-                        </a>
-                    </li>
-                    <li className="h-[50px] flex justify-end items-center cursor-pointer item">
-                        <a href="#01" className="h-full">
-                            01
-                        </a>
-                    </li>
-                    <li className="h-[50px] flex justify-end items-center cursor-pointer item">
-                        <a href="#02" className="h-full">
-                            02
-                        </a>
-                    </li>
-                    <li className="h-[50px] flex justify-end items-center cursor-pointer item">
-                        <a href="#03" className="h-full">
-                            03
-                        </a>
-                    </li>
-                </ul>
-                <div
-                    id="marks"
-                    className="w-[2px] bg-[#FBD784] absolute top-0 left-0"
-                ></div>
             </div>
         </>
     );
